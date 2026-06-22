@@ -1,9 +1,22 @@
-/* eslint-disable prettier/prettier */
-import fs from "fs";
-import path from "path";
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-const modelDir = path.join(process.resourcesPath, "models");
+import fs from 'fs'
+import path from 'path'
+import { app } from 'electron'
 
-const files = fs.readdirSync(modelDir);
+const modelDir = app.isPackaged
+  ? path.join(process.resourcesPath, 'models')
+  : path.join(process.cwd(), 'resources', 'models')
 
-console.log(files);
+export const getModel = () => {
+  try {
+    const files = fs.readdirSync(modelDir)
+    const modelNames = files
+      .filter((file) => file.endsWith('.param'))
+      .map((file) => path.basename(file, '.param'))
+    return [...new Set(modelNames)].sort()
+  } catch (error) {
+    console.error('Failed to read models directory:', modelDir, error)
+    return []
+  }
+}

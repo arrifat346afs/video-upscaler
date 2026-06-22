@@ -1,1 +1,1 @@
-export const imageFormats = ["png", "jpg", "jpeg", "webp"] as const;
+export const imageFormats = ['png', 'jpg', 'jpeg', 'webp'] as const

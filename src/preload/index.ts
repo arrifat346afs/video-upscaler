@@ -1,12 +1,68 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { ELECTRON_COMMANDS } from '../../common/electron-commands'
 
-// Custom APIs for renderer
-const api = {}
+const api = {
+  getModelsList: () => ipcRenderer.invoke(ELECTRON_COMMANDS.GET_MODELS_LIST),
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
+  selectVideo: () => ipcRenderer.invoke(ELECTRON_COMMANDS.SELECT_FILE),
+
+  selectFolder: () => ipcRenderer.invoke(ELECTRON_COMMANDS.SELECT_FOLDER),
+
+  upscaleVideo: (payload: {
+    videoPath: string
+    outputPath?: string
+    model: string
+    scale: string
+    ttaMode?: boolean
+    tileSize?: number
+  }) => ipcRenderer.invoke(ELECTRON_COMMANDS.UPSCAYL_VIDEO, payload),
+
+  stopUpscaling: () => ipcRenderer.send(ELECTRON_COMMANDS.STOP),
+
+  onProgress: (
+    callback: (data: { current: number; total: number; stage: string; message?: string }) => void
+  ) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: unknown): void => {
+      callback(data as { current: number; total: number; stage: string; message?: string })
+    }
+    ipcRenderer.on(ELECTRON_COMMANDS.UPSCAYL_VIDEO_PROGRESS, handler)
+    return () => {
+      ipcRenderer.removeListener(ELECTRON_COMMANDS.UPSCAYL_VIDEO_PROGRESS, handler)
+    }
+  },
+
+  onUpscaleDone: (callback: (data: { outputPath: string }) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: unknown): void => {
+      callback(data as { outputPath: string })
+    }
+    ipcRenderer.on(ELECTRON_COMMANDS.UPSCAYL_VIDEO_DONE, handler)
+    return () => {
+      ipcRenderer.removeListener(ELECTRON_COMMANDS.UPSCAYL_VIDEO_DONE, handler)
+    }
+  },
+
+  onError: (callback: (data: { message: string }) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: unknown): void => {
+      callback(data as { message: string })
+    }
+    ipcRenderer.on(ELECTRON_COMMANDS.UPSCAYL_ERROR, handler)
+    return () => {
+      ipcRenderer.removeListener(ELECTRON_COMMANDS.UPSCAYL_ERROR, handler)
+    }
+  },
+
+  onLog: (callback: (message: string) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: unknown): void => {
+      callback(data as string)
+    }
+    ipcRenderer.on(ELECTRON_COMMANDS.LOG, handler)
+    return () => {
+      ipcRenderer.removeListener(ELECTRON_COMMANDS.LOG, handler)
+    }
+  }
+}
+
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
