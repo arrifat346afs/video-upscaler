@@ -1,35 +1,79 @@
+import { ArrowDownToLine, FolderOpen, MousePointer2, Video } from 'lucide-react'
+
 type IdleDisplayProps = {
   videoName: string | null
   folderPath: string | null
   folderVideoCount: number
+  batchMode: boolean
 }
 
-export function IdleDisplay({
-  videoName,
-  folderPath,
-  folderVideoCount
-}: IdleDisplayProps): React.ReactElement {
-  const hasSelection = videoName || folderPath
-
+export function IdleDisplay({ batchMode }: IdleDisplayProps): React.ReactElement {
   return (
-    <div className="flex h-full items-center justify-center">
-      <div className="text-center space-y-2">
-        {videoName && <p className="text-lg font-medium">{videoName}</p>}
+    <div className="z-10 max-w-sm text-center">
+      <div className="mb-6 flex items-center justify-center">
+        <div className="rounded-2xl border bg-card p-5 shadow-sm">
+          {batchMode ? (
+            <FolderOpen className="size-10 text-muted-foreground" />
+          ) : (
+            <Video className="size-10 text-muted-foreground" />
+          )}
+        </div>
+      </div>
 
-        {folderPath && (
-          <div className="space-y-1">
-            <p className="text-lg font-medium">{folderPath}</p>
-            {folderVideoCount > 0 && (
-              <p className="text-sm text-muted-foreground">
-                {folderVideoCount} video{folderVideoCount === 1 ? '' : 's'} found
-              </p>
-            )}
+      <h2 className="mb-2 text-2xl font-bold">{batchMode ? 'Batch Upscale' : 'Video Upscale'}</h2>
+      <p className="mb-6 text-sm text-muted-foreground">
+        {batchMode
+          ? 'Select a folder containing videos to upscale them all at once.'
+          : 'Select a video or drag and drop it here to start upscaling.'}
+      </p>
+
+      <div className="space-y-3 rounded-2xl border bg-card p-4 text-left shadow-sm">
+        <div className="flex items-start gap-3">
+          <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-medium">
+            1
           </div>
-        )}
+          <div>
+            <p className="text-sm font-medium">
+              {batchMode ? 'Select a folder' : 'Select a video'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {batchMode
+                ? 'Pick the folder that contains your videos.'
+                : 'Click the button or double-click this area.'}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-start gap-3">
+          <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-medium">
+            2
+          </div>
+          <div>
+            <p className="text-sm font-medium">Configure the AI model</p>
+            <p className="text-xs text-muted-foreground">
+              Choose a model, scale, and any extra options.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-start gap-3">
+          <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-medium">
+            3
+          </div>
+          <div>
+            <p className="text-sm font-medium">Upscale</p>
+            <p className="text-xs text-muted-foreground">
+              Hit the Upscale button and wait for the magic.
+            </p>
+          </div>
+        </div>
+      </div>
 
-        <p className="text-lg font-medium text-muted-foreground">
-          {hasSelection ? 'Ready to upscale' : 'Select a video and configure settings to begin'}
-        </p>
+      <div className="mt-6 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <MousePointer2 className="size-3" /> Double-click to select
+        </span>
+        <span className="flex items-center gap-1">
+          <ArrowDownToLine className="size-3" /> Drag & drop supported
+        </span>
       </div>
     </div>
   )

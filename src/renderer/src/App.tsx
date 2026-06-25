@@ -1,7 +1,6 @@
-import { SidebarProvider, Sidebar, SidebarContent } from './components/ui/sidebar'
 import { ThemeProvider } from './components/theme-provider'
 import { SidebarPanel } from './components/SidebarPanel'
-import { ProgressDisplay } from './components/ProgressDisplay'
+import { MainContent } from './components/MainContent'
 import { useUpscale } from './hooks/useUpscale'
 
 function App(): React.JSX.Element {
@@ -33,6 +32,7 @@ function App(): React.JSX.Element {
     videoName,
     systemInfo,
     handleVideoSelected,
+    handleSelectVideo,
     handleSelectFolder,
     handleSelectOutputFolder,
     handleUpscale,
@@ -41,52 +41,52 @@ function App(): React.JSX.Element {
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <SidebarProvider>
-        <Sidebar collapsible="none">
-          <SidebarContent className="flex flex-col gap-5 p-4">
-            <SidebarPanel
-              activeTab={activeTab}
-              onActiveTabChange={setActiveTab}
-              batchMode={batchMode}
-              onBatchModeChange={setBatchMode}
-              doubleUpscale={doubleUpscale}
-              onDoubleUpscaleChange={setDoubleUpscale}
-              model={model}
-              onModelChange={setModel}
-              models={models}
-              scale={scale}
-              onScaleChange={setScale}
-              ttaMode={ttaMode}
-              onTtaModeChange={setTtaMode}
-              tileSize={tileSize}
-              onTileSizeChange={setTileSize}
-              outputFormat={outputFormat}
-              onOutputFormatChange={setOutputFormat}
-              videoPath={videoPath}
-              folderPath={folderPath}
-              outputPath={outputPath}
-              videoName={videoName}
-              systemInfo={systemInfo}
-              onVideoSelected={handleVideoSelected}
-              onSelectFolder={handleSelectFolder}
-              onSelectOutputFolder={handleSelectOutputFolder}
-              onUpscale={handleUpscale}
-              isProcessing={isProcessing}
-            />
-          </SidebarContent>
-        </Sidebar>
-        <main className="flex flex-1 flex-col p-6">
-          <ProgressDisplay
-            progress={progress}
-            logs={logs}
-            onCancel={handleCancel}
-            isProcessing={isProcessing}
-            videoName={videoName}
-            folderPath={folderPath}
-            folderVideoCount={folderVideoCount}
-          />
-        </main>
-      </SidebarProvider>
+      <div className="flex h-screen w-screen flex-row overflow-hidden bg-background">
+        <SidebarPanel
+          activeTab={activeTab}
+          onActiveTabChange={setActiveTab}
+          batchMode={batchMode}
+          onBatchModeChange={setBatchMode}
+          doubleUpscale={doubleUpscale}
+          onDoubleUpscaleChange={setDoubleUpscale}
+          model={model}
+          onModelChange={setModel}
+          models={models}
+          scale={scale}
+          onScaleChange={setScale}
+          ttaMode={ttaMode}
+          onTtaModeChange={setTtaMode}
+          tileSize={tileSize}
+          onTileSizeChange={setTileSize}
+          outputFormat={outputFormat}
+          onOutputFormatChange={setOutputFormat}
+          videoPath={videoPath}
+          folderPath={folderPath}
+          outputPath={outputPath}
+          videoName={videoName}
+          systemInfo={systemInfo}
+          onSelectVideo={handleSelectVideo}
+          onSelectFolder={handleSelectFolder}
+          onSelectOutputFolder={handleSelectOutputFolder}
+          onUpscale={handleUpscale}
+          isProcessing={isProcessing}
+        />
+        <MainContent
+          batchMode={batchMode}
+          videoPath={videoPath}
+          folderPath={folderPath}
+          folderVideoCount={folderVideoCount}
+          outputPath={outputPath}
+          isProcessing={isProcessing}
+          progress={progress}
+          logs={logs}
+          videoName={videoName}
+          onSelectVideo={handleSelectVideo}
+          onSelectFolder={handleSelectFolder}
+          onVideoDropped={handleVideoSelected}
+          onCancel={handleCancel}
+        />
+      </div>
     </ThemeProvider>
   )
 }

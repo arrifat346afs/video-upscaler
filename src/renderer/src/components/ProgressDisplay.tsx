@@ -9,6 +9,7 @@ type ProgressDisplayProps = {
   logs: string[]
   onCancel: () => void
   isProcessing: boolean
+  batchMode: boolean
   videoName: string | null
   folderPath: string | null
   folderVideoCount: number
@@ -28,6 +29,7 @@ export const ProgressDisplay = ({
   logs,
   onCancel,
   isProcessing,
+  batchMode,
   videoName,
   folderPath,
   folderVideoCount
@@ -38,6 +40,7 @@ export const ProgressDisplay = ({
         videoName={videoName}
         folderPath={folderPath}
         folderVideoCount={folderVideoCount}
+        batchMode={batchMode}
       />
     )
   }
@@ -50,8 +53,8 @@ export const ProgressDisplay = ({
         : 0
 
   return (
-    <div className="flex h-full flex-col gap-6">
-      <div className="text-center space-y-1">
+    <div className="w-full max-w-md rounded-2xl border bg-card p-6 shadow-lg">
+      <div className="mb-5 text-center space-y-1">
         {progress?.batchInfo ? (
           <BatchProgressHeader batchInfo={progress.batchInfo} />
         ) : (
@@ -61,7 +64,7 @@ export const ProgressDisplay = ({
       </div>
 
       {progress && (
-        <div className="space-y-4">
+        <div className="mb-5 space-y-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">{stageLabels[progress.stage]}</span>
@@ -89,9 +92,9 @@ export const ProgressDisplay = ({
       )}
 
       {logs.length > 0 && (
-        <div className="flex-1 space-y-2">
+        <div className="mb-5 space-y-2">
           <h3 className="text-sm font-semibold">Logs</h3>
-          <div className="h-48 overflow-y-auto rounded-lg border bg-muted/50 p-3">
+          <div className="h-40 overflow-y-auto rounded-lg border bg-muted/50 p-3">
             {logs.map((log, i) => (
               <p key={i} className="text-xs leading-relaxed text-muted-foreground">
                 {log}

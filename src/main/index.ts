@@ -1,5 +1,8 @@
-import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog, protocol } from 'electron'
 import path, { join } from 'path'
+import fs from 'fs'
+import { Readable } from 'stream'
+import { fileURLToPath } from 'url'
 import os from 'os'
 import { execFile } from 'child_process'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -11,6 +14,80 @@ import { upscaleFolder, cancelBatch, type UpscaleFolderOptions } from './batch'
 import { getVideoFiles } from './video-utils'
 
 let mainWindow: BrowserWindow | null = null
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'local-file',
+    privileges: {
+      standard: true,
+      secure: true,
+      bypassCSP: true,
+      supportFetchAPI: true
+    }
+  }
+])
+
+function getMimeType(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase()
+  const mimeTypes: Record<string, string> = {
+    '.mp4': 'video/mp4',
+    '.webm': 'video/webm',
+    '.mkv': 'video/x-matroska',
+    '.avi': 'video/x-msvideo',
+    '.mov': 'video/quicktime',
+    '.m4v': 'video/x-m4v',
+    '.wmv': 'video/x-ms-wmv',
+    '.flv': 'video/x-flv',
+    '.mpeg': 'video/mpeg',
+    '.mpg': 'video/mpeg',
+    '.ts': 'video/mp2t'
+  }
+  return mimeTypes[ext] ?? 'application/octet-stream'
+}
+
+function registerLocalFileProtocol(): void {
+  protocol.handle('local-file', async (request) => {
+    try {
+      const fileUrl = request.url.replace(/^local-file:/, 'file:')
+      const filePath = fileURLToPath(fileUrl)
+      const stat = await fs.promises.stat(filePath)
+      const size = stat.size
+      const mimeType = getMimeType(filePath)
+
+      const rangeHeader = request.headers.get('Range')
+      if (rangeHeader) {
+        const rangeMatch = /^bytes=(\d+)-(\d*)$/.exec(rangeHeader)
+        if (rangeMatch) {
+          const start = parseInt(rangeMatch[1], 10)
+          const end = rangeMatch[2] ? parseInt(rangeMatch[2], 10) : size - 1
+          const chunkSize = end - start + 1
+          const stream = fs.createReadStream(filePath, { start, end })
+          return new Response(Readable.toWeb(stream) as ReadableStream<Uint8Array>, {
+            status: 206,
+            headers: {
+              'Accept-Ranges': 'bytes',
+              'Content-Length': String(chunkSize),
+              'Content-Range': `bytes ${start}-${end}/${size}`,
+              'Content-Type': mimeType
+            }
+          })
+        }
+      }
+
+      const stream = fs.createReadStream(filePath)
+      return new Response(Readable.toWeb(stream) as ReadableStream<Uint8Array>, {
+        headers: {
+          'Accept-Ranges': 'bytes',
+          'Content-Length': String(size),
+          'Content-Type': mimeType
+        }
+      })
+    } catch (error) {
+      console.error('Failed to load local file:', error)
+      return new Response('Not found', { status: 404 })
+    }
+  })
+}
 
 function createWindow(): void {
   const window = new BrowserWindow({
@@ -279,6 +356,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
+  registerLocalFileProtocol()
   registerIpcHandlers()
 
   createWindow()
