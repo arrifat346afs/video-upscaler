@@ -89,7 +89,7 @@ export const SidebarPanel = ({
   isProcessing
 }: SidebarPanelProps): React.ReactElement => {
   return (
-    <div className="flex h-screen min-w-[340px] max-w-[340px] flex-col border-r bg-card">
+    <div className="flex h-screen min-w-85 max-w-85 flex-col border-r bg-card">
       <div className="flex items-center gap-2 border-b px-5 py-4">
         <div className="flex size-8 items-center justify-center rounded-lg bg-violet-600">
           <img src={tuxscaleLogo} alt="TuxScale" className="size-6" />
@@ -193,16 +193,11 @@ export const SidebarPanel = ({
                   onCheckedChange={onTtaModeChange}
                   disabled={isProcessing}
                 />
-                <Label htmlFor="tta-mode" className="cursor-pointer">
-                  TTA Mode
-                </Label>
+
                 <HelpCircle className="size-4 text-muted-foreground" />
               </div>
 
               <div className="flex items-center gap-2">
-                <Label htmlFor="tile-size" className="text-xs whitespace-nowrap">
-                  Tile Size
-                </Label>
                 <input
                   id="tile-size"
                   type="number"

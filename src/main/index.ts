@@ -5,7 +5,6 @@ import http from 'http'
 import os from 'os'
 import { execFile } from 'child_process'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
 import { ELECTRON_COMMANDS } from '../../common/electron-commands'
 import { getModel } from './getmodel'
 import { upscaleSingleVideo, stopAllProcesses, type UpscaleVideoOptions } from './upscale'
@@ -95,12 +94,16 @@ function startVideoServer(): Promise<number> {
 }
 
 function createWindow(): void {
+  // const icon = app.isPackaged
+  //   ? path.join(process.resourcesPath, 'icon.png')
+  //   : path.join(__dirname, '../../resources/icon.png')
+
   const window = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    icon: '../../resources/icon.png',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -360,7 +363,7 @@ function registerIpcHandlers(): void {
 }
 
 app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.tuxscale.app')
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
