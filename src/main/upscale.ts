@@ -88,7 +88,7 @@ function getModelPath(): string {
 
 function getTempDir(): string {
   const tempBase = app.getPath('temp')
-  const dir = path.join(tempBase, 'videoup-temp', Date.now().toString())
+  const dir = path.join(tempBase, 'tuxscale-temp', Date.now().toString())
   fs.mkdirSync(dir, { recursive: true })
   tempDirCleanup.push(dir)
   return dir

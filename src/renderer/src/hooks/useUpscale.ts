@@ -41,13 +41,17 @@ export function useUpscale(): UseUpscaleReturn {
   const [activeTab, setActiveTab] = useState('upscale')
   const [batchMode, setBatchMode] = useState(false)
   const [doubleUpscale, setDoubleUpscale] = useState(false)
-  const [model, setModel] = useState('')
+  const [model, setModel] = useState(
+    () => localStorage.getItem('selectedModel') || ''
+  )
   const [models, setModels] = useState<string[]>([])
   const [scale, setScale] = useState([4])
   const [ttaMode, setTtaMode] = useState(false)
   const [tileSize, setTileSize] = useState('256')
 
-  const [outputFormat, setOutputFormat] = useState('mp4')
+  const [outputFormat, setOutputFormat] = useState(
+    () => localStorage.getItem('outputFormat') || 'mp4'
+  )
   const [videoPath, setVideoPath] = useState<string | null>(null)
   const [folderPath, setFolderPath] = useState<string | null>(null)
   const [folderVideoCount, setFolderVideoCount] = useState(0)
@@ -58,15 +62,28 @@ export function useUpscale(): UseUpscaleReturn {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
 
   useEffect(() => {
+    localStorage.setItem('outputFormat', outputFormat)
+  }, [outputFormat])
+
+  useEffect(() => {
     window.api.getModelsList().then((list) => {
       setModels(list)
-      if (list.length > 0) setModel(list[0])
+      if (list.length > 0) {
+        const savedModel = localStorage.getItem('selectedModel')
+        if (!savedModel || !list.includes(savedModel)) {
+          setModel(list[0])
+        }
+      }
     })
     window.api
       .getSystemInfo()
       .then(setSystemInfo)
       .catch(() => {})
   }, [])
+
+  useEffect(() => {
+    if (model) localStorage.setItem('selectedModel', model)
+  }, [model])
 
   useEffect(() => {
     const cleanupFns: (() => void)[] = []

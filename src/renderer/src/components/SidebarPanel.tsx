@@ -95,7 +95,7 @@ export const SidebarPanel = ({
           <Sparkles className="size-5" />
         </div>
         <div className="flex flex-col">
-          <span className="text-sm font-bold leading-none">VideoUp</span>
+          <span className="text-sm font-bold leading-none">TuxScale</span>
           <span className="text-[10px] text-muted-foreground">AI Video Upscaler</span>
         </div>
       </div>

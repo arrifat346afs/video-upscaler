@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: videoup
+appId: com.tuxscale.app
+productName: TuxScale
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: videoup
+  executableName: tuxscale
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -31,9 +31,10 @@ dmg:
 linux:
   target:
     - AppImage
-    - snap
     - deb
-  maintainer: electronjs.org
+    - rpm
+    - pacman
+  maintainer: TuxScale
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}
