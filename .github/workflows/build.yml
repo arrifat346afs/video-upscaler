@@ -17,18 +17,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+
+      - uses: oven-sh/setup-bun@v2
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y rpm libarchive-tools zstd
 
-      - name: Install npm dependencies
-        run: npm install
+      - name: Install dependencies
+        run: bun install
 
       - name: Build Linux packages
-        run: npm run build:linux
+        run: bun run build:linux
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
