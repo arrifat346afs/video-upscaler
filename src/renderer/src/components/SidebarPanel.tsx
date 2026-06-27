@@ -24,10 +24,10 @@ import {
   HardDrive,
   CheckCircle2,
   XCircle,
-  FileVideo,
-  Sparkles
+  FileVideo
 } from 'lucide-react'
 import type { SystemInfo } from '../../../../common/types/types'
+import tuxscaleLogo from '../assets/tuxscale-logo.png'
 
 type SidebarPanelProps = {
   activeTab: string
@@ -91,8 +91,8 @@ export const SidebarPanel = ({
   return (
     <div className="flex h-screen min-w-[340px] max-w-[340px] flex-col border-r bg-card">
       <div className="flex items-center gap-2 border-b px-5 py-4">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-violet-600 text-primary-foreground">
-          <Sparkles className="size-5" />
+        <div className="flex size-8 items-center justify-center rounded-lg bg-violet-600">
+          <img src={tuxscaleLogo} alt="TuxScale" className="size-6" />
         </div>
         <div className="flex flex-col">
           <span className="text-sm font-bold leading-none">TuxScale</span>

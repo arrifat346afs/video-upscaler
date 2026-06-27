@@ -1,5 +1,9 @@
 # TuxScale
 
+<p align="center">
+  <img src="Untitled.png" alt="TuxScale Screenshot" width="800" />
+</p>
+
 AI-powered video upscaling application built with Electron, React, and TypeScript.
 
 TuxScale uses the [upscayl-ncnn](https://github.com/upscayl/upscayl-ncnn) backend to upscale videos using Real-ESRGAN models via Vulkan compute.
