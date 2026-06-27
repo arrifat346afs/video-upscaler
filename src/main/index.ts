@@ -1,8 +1,7 @@
-import { app, shell, BrowserWindow, ipcMain, dialog, protocol } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import path, { join } from 'path'
 import fs from 'fs'
-import { Readable } from 'stream'
-import { fileURLToPath } from 'url'
+import http from 'http'
 import os from 'os'
 import { execFile } from 'child_process'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -14,18 +13,6 @@ import { upscaleFolder, cancelBatch, type UpscaleFolderOptions } from './batch'
 import { getVideoFiles } from './video-utils'
 
 let mainWindow: BrowserWindow | null = null
-
-protocol.registerSchemesAsPrivileged([
-  {
-    scheme: 'local-file',
-    privileges: {
-      standard: true,
-      secure: true,
-      bypassCSP: true,
-      supportFetchAPI: true
-    }
-  }
-])
 
 function getMimeType(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase()
@@ -45,47 +32,65 @@ function getMimeType(filePath: string): string {
   return mimeTypes[ext] ?? 'application/octet-stream'
 }
 
-function registerLocalFileProtocol(): void {
-  protocol.handle('local-file', async (request) => {
-    try {
-      const fileUrl = request.url.replace(/^local-file:/, 'file:')
-      const filePath = fileURLToPath(fileUrl)
-      const stat = await fs.promises.stat(filePath)
-      const size = stat.size
-      const mimeType = getMimeType(filePath)
+let videoServer: http.Server | null = null
+let videoServerPort = 0
 
-      const rangeHeader = request.headers.get('Range')
-      if (rangeHeader) {
-        const rangeMatch = /^bytes=(\d+)-(\d*)$/.exec(rangeHeader)
-        if (rangeMatch) {
-          const start = parseInt(rangeMatch[1], 10)
-          const end = rangeMatch[2] ? parseInt(rangeMatch[2], 10) : size - 1
-          const chunkSize = end - start + 1
-          const stream = fs.createReadStream(filePath, { start, end })
-          return new Response(Readable.toWeb(stream) as ReadableStream<Uint8Array>, {
-            status: 206,
-            headers: {
-              'Accept-Ranges': 'bytes',
-              'Content-Length': String(chunkSize),
-              'Content-Range': `bytes ${start}-${end}/${size}`,
-              'Content-Type': mimeType
-            }
+function startVideoServer(): Promise<number> {
+  if (videoServer && videoServerPort > 0) {
+    return Promise.resolve(videoServerPort)
+  }
+  return new Promise((resolve, reject) => {
+    const server = http.createServer((req, res) => {
+      try {
+        const reqUrl = new URL(req.url ?? '/', `http://127.0.0.1:${videoServerPort}`)
+        if (reqUrl.pathname !== '/video') {
+          res.writeHead(404).end('Not found')
+          return
+        }
+        const filePath = decodeURIComponent(reqUrl.searchParams.get('path') ?? '')
+        if (!filePath || !fs.existsSync(filePath)) {
+          res.writeHead(404).end('Not found')
+          return
+        }
+        const stat = fs.statSync(filePath)
+        const mimeType = getMimeType(filePath)
+        const range = req.headers.range
+        if (range) {
+          const parts = range.replace(/bytes=/, '').split('-')
+          const start = parseInt(parts[0], 10)
+          const end = parts[1] ? parseInt(parts[1], 10) : stat.size - 1
+          if (isNaN(start) || isNaN(end) || start >= stat.size || end >= stat.size || start > end) {
+            res.writeHead(416, { 'Content-Range': `bytes */${stat.size}` }).end()
+            return
+          }
+          const chunksize = end - start + 1
+          res.writeHead(206, {
+            'Content-Range': `bytes ${start}-${end}/${stat.size}`,
+            'Accept-Ranges': 'bytes',
+            'Content-Length': String(chunksize),
+            'Content-Type': mimeType
           })
+          fs.createReadStream(filePath, { start, end }).pipe(res)
+        } else {
+          res.writeHead(200, {
+            'Accept-Ranges': 'bytes',
+            'Content-Length': String(stat.size),
+            'Content-Type': mimeType
+          })
+          fs.createReadStream(filePath).pipe(res)
         }
+      } catch (error) {
+        console.error('Video server error', error)
+        if (!res.headersSent) res.writeHead(500).end('Internal server error')
       }
-
-      const stream = fs.createReadStream(filePath)
-      return new Response(Readable.toWeb(stream) as ReadableStream<Uint8Array>, {
-        headers: {
-          'Accept-Ranges': 'bytes',
-          'Content-Length': String(size),
-          'Content-Type': mimeType
-        }
-      })
-    } catch (error) {
-      console.error('Failed to load local file:', error)
-      return new Response('Not found', { status: 404 })
-    }
+    })
+    server.listen(0, '127.0.0.1', () => {
+      const addr = server.address()
+      videoServerPort = typeof addr === 'object' && addr ? addr.port : 0
+      videoServer = server
+      resolve(videoServerPort)
+    })
+    server.on('error', reject)
   })
 }
 
@@ -139,6 +144,11 @@ function registerIpcHandlers(): void {
     })
     if (result.canceled) return null
     return result.filePaths[0]
+  })
+
+  ipcMain.handle(ELECTRON_COMMANDS.GET_VIDEO_URL, async (_, videoPath: string) => {
+    const port = await startVideoServer()
+    return `http://127.0.0.1:${port}/video?path=${encodeURIComponent(videoPath)}`
   })
 
   ipcMain.handle(ELECTRON_COMMANDS.UPSCAYL_VIDEO, async (event, payload) => {
@@ -356,7 +366,6 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  registerLocalFileProtocol()
   registerIpcHandlers()
 
   createWindow()

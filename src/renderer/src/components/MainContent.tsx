@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FileVideo, Film, FolderOpen } from 'lucide-react'
 import { Button } from './ui/button'
 import { ProgressDisplay } from './ProgressDisplay'
@@ -51,11 +51,31 @@ export function MainContent({
   onCancel
 }: MainContentProps): React.ReactElement {
   const [isDragging, setIsDragging] = useState(false)
+  const [videoUrl, setVideoUrl] = useState<string | null>(null)
 
   const showIdle = useMemo(() => {
     if (batchMode) return folderPath === null
     return videoPath === null
   }, [batchMode, videoPath, folderPath])
+
+  useEffect(() => {
+    if (!videoPath) {
+      setVideoUrl(null)
+      return
+    }
+    if (
+      videoPath.startsWith('http://') ||
+      videoPath.startsWith('https://') ||
+      videoPath.startsWith('local-file://')
+    ) {
+      setVideoUrl(videoPath)
+      return
+    }
+    window.api
+      .getVideoUrl(videoPath)
+      .then(setVideoUrl)
+      .catch(() => setVideoUrl(null))
+  }, [videoPath])
 
   const handleDragEnter = (e: React.DragEvent): void => {
     e.preventDefault()
@@ -123,10 +143,10 @@ export function MainContent({
         />
       )}
 
-      {!batchMode && videoPath && (
+      {!batchMode && videoUrl && (
         <div className="relative z-10 flex h-full w-full items-center justify-center p-8">
           <video
-            src={videoPath.startsWith('local-file://') ? videoPath : `local-file://${videoPath}`}
+            src={videoUrl}
             controls
             className="max-h-full max-w-full rounded-xl border shadow-sm"
           />

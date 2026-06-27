@@ -12,6 +12,9 @@ const api = {
   getFolderVideos: (folderPath: string) =>
     ipcRenderer.invoke(ELECTRON_COMMANDS.GET_FOLDER_VIDEOS, folderPath),
 
+  getVideoUrl: (videoPath: string) =>
+    ipcRenderer.invoke(ELECTRON_COMMANDS.GET_VIDEO_URL, videoPath),
+
   upscaleVideo: (payload: {
     videoPath: string
     outputPath?: string

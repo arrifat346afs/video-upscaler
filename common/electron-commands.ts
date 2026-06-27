@@ -30,7 +30,8 @@ const ELECTRON_COMMANDS = {
   PASTE_IMAGE: 'Paste Image from clipboard',
   PASTE_IMAGE_SAVE_SUCCESS: 'Clipboard Image saved successfully',
   PASTE_IMAGE_SAVE_ERROR: 'Clipboard Image save failed',
-  GET_SYSTEM_INFO: 'Get System Information'
+  GET_SYSTEM_INFO: 'Get System Information',
+  GET_VIDEO_URL: 'Get video URL'
 } as const
 
 export { ELECTRON_COMMANDS }

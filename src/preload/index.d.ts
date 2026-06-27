@@ -6,6 +6,7 @@ interface Api {
   selectVideo: () => Promise<string | null>
   selectFolder: () => Promise<string | null>
   getFolderVideos: (folderPath: string) => Promise<string[]>
+  getVideoUrl: (videoPath: string) => Promise<string>
   upscaleVideo: (payload: {
     videoPath: string
     outputPath?: string
