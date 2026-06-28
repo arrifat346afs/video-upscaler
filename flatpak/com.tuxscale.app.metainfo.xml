@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.tuxscale.app</id>
+  <name>TuxScale</name>
+  <summary>Video upscaling application powered by AI</summary>
+
+  <url type="homepage">https://github.com/rifat/tuxscale</url>
+  <url type="bugtracker">https://github.com/rifat/tuxscale/issues</url>
+
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>AGPL-3.0</project_license>
+
+  <description>
+    <p>TuxScale is a free and open source video upscaling application powered by AI.</p>
+  </description>
+
+  <content_rating type="oars-1.1" />
+
+  <launchable type="desktop-id">com.tuxscale.app.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/rifat/tuxscale/main/screenshot.png</image>
+    </screenshot>
+  </screenshots>
+
+  <releases>
+    <release version="1.0.0" date="2025-01-01">
+      <description>
+        <p>Initial release</p>
+      </description>
+    </release>
+  </releases>
+</component>

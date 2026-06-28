@@ -16,6 +16,10 @@ extraResources:
     to: "models"
   - from: "resources/icon.png"
     to: "icon.png"
+  - from: "resources/icons/512x512.png"
+    to: "512x512.png"
+  - from: "resources/icons/128x128.png"
+    to: "128x128.png"
 linux:
   icon: resources/icons/
   target:
@@ -23,6 +27,7 @@ linux:
     - deb
     - rpm
     - pacman
+    - zip
   maintainer: TuxScale
   category: Utility
 appImage:
