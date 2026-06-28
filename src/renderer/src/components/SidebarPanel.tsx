@@ -71,8 +71,8 @@ export const SidebarPanel = ({
   models,
   scale,
   onScaleChange,
-  ttaMode,
-  onTtaModeChange,
+  // ttaMode,
+  // onTtaModeChange,
   tileSize,
   onTileSizeChange,
   outputFormat,
@@ -91,12 +91,16 @@ export const SidebarPanel = ({
   return (
     <div className="flex h-screen min-w-85 max-w-85 flex-col border-r bg-card">
       <div className="flex items-center gap-2 border-b px-5 py-4">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-violet-600">
-          <img src={tuxscaleLogo} alt="TuxScale" className="size-6" />
+        <div className="flex items-center justify-center rounded-lg">
+          <img
+            src={tuxscaleLogo}
+            alt="TuxScale"
+            className="size-16 border-2 border-accent rounded-lg"
+          />
         </div>
         <div className="flex flex-col">
-          <span className="text-sm font-bold leading-none">TuxScale</span>
-          <span className="text-[10px] text-muted-foreground">AI Video Upscaler</span>
+          <span className="text-2xl font-bold leading-none">TuxScale</span>
+          <span className="text-[15px] text-muted-foreground">AI Video Upscaler</span>
         </div>
       </div>
 
@@ -186,7 +190,7 @@ export const SidebarPanel = ({
                 <HelpCircle className="size-4 text-muted-foreground" />
               </div>
 
-              <div className="flex items-center gap-2">
+              {/* <div className="flex items-center gap-2">
                 <Switch
                   id="tta-mode"
                   checked={ttaMode}
@@ -195,7 +199,7 @@ export const SidebarPanel = ({
                 />
 
                 <HelpCircle className="size-4 text-muted-foreground" />
-              </div>
+              </div> */}
 
               <div className="flex items-center gap-2">
                 <input
