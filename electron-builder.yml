@@ -17,7 +17,7 @@ extraResources:
   - from: "resources/icon.png"
     to: "icon.png"
 linux:
-  icon: build/icon.png
+  icon: resources/icons/
   target:
     - AppImage
     - deb

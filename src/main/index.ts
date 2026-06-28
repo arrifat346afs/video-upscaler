@@ -94,16 +94,16 @@ function startVideoServer(): Promise<number> {
 }
 
 function createWindow(): void {
-  // const icon = app.isPackaged
-  //   ? path.join(process.resourcesPath, 'icon.png')
-  //   : path.join(__dirname, '../../resources/icon.png')
+  const icon = app.isPackaged
+    ? path.join(process.resourcesPath, 'icon.png')
+    : path.join(__dirname, '../../resources/icon.png')
 
   const window = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
     autoHideMenuBar: true,
-    icon: '../../resources/icon.png',
+    icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
