@@ -26,6 +26,7 @@ function App(): React.JSX.Element {
     folderPath,
     folderVideoCount,
     outputPath,
+    upscaledVideoPath,
     isProcessing,
     progress,
     logs,
@@ -77,6 +78,7 @@ function App(): React.JSX.Element {
           folderPath={folderPath}
           folderVideoCount={folderVideoCount}
           outputPath={outputPath}
+          upscaledVideoPath={upscaledVideoPath}
           isProcessing={isProcessing}
           progress={progress}
           logs={logs}

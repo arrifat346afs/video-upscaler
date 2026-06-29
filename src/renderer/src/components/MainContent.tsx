@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useMemo, useState } from 'react'
 import { FileVideo, Film, FolderOpen } from 'lucide-react'
 import { Button } from './ui/button'
@@ -25,6 +26,7 @@ type MainContentProps = {
   folderPath: string | null
   folderVideoCount: number
   outputPath: string | null
+  upscaledVideoPath: string | null
   isProcessing: boolean
   progress: ProgressData | null
   logs: string[]
@@ -41,6 +43,7 @@ export function MainContent({
   folderPath,
   folderVideoCount,
   outputPath,
+  upscaledVideoPath,
   isProcessing,
   progress,
   logs,
@@ -52,6 +55,9 @@ export function MainContent({
 }: MainContentProps): React.ReactElement {
   const [isDragging, setIsDragging] = useState(false)
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
+  const [upscaledVideoUrl, setUpscaledVideoUrl] = useState<string | null>(null)
+  const [sliderPosition, setSliderPosition] = useState(50)
+  const [isSliderDragging, setIsSliderDragging] = useState(false)
 
   const showIdle = useMemo(() => {
     if (batchMode) return folderPath === null
@@ -76,6 +82,33 @@ export function MainContent({
       .then(setVideoUrl)
       .catch(() => setVideoUrl(null))
   }, [videoPath])
+
+  useEffect(() => {
+    if (!upscaledVideoPath) {
+      setUpscaledVideoUrl(null)
+      return
+    }
+    window.api
+      .getVideoUrl(upscaledVideoPath)
+      .then(setUpscaledVideoUrl)
+      .catch(() => setUpscaledVideoUrl(null))
+  }, [upscaledVideoPath])
+
+  useEffect(() => {
+    const handleGlobalMouseUp = (): void => {
+      setIsSliderDragging(false)
+    }
+
+    if (!isSliderDragging) return
+
+    window.addEventListener('mouseup', handleGlobalMouseUp)
+    window.addEventListener('touchend', handleGlobalMouseUp)
+
+    return () => {
+      window.removeEventListener('mouseup', handleGlobalMouseUp)
+      window.removeEventListener('touchend', handleGlobalMouseUp)
+    }
+  }, [isSliderDragging])
 
   const handleDragEnter = (e: React.DragEvent): void => {
     e.preventDefault()
@@ -116,6 +149,40 @@ export function MainContent({
     }
   }
 
+  const handleSliderMouseDown = (): void => {
+    setIsSliderDragging(true)
+  }
+
+  const handleSliderMouseUp = (): void => {
+    setIsSliderDragging(false)
+  }
+
+  const handleSliderMove = (e: React.MouseEvent<HTMLDivElement> | TouchEvent): void => {
+    if (!isSliderDragging) return
+
+    const container = (e as React.MouseEvent<HTMLDivElement>).currentTarget
+    if (!container) return
+
+    const rect = container.getBoundingClientRect()
+    const clientX = 'touches' in e ? e.touches[0]?.clientX : (e as React.MouseEvent).clientX
+    const position = ((clientX - rect.left) / rect.width) * 100
+    setSliderPosition(Math.max(0, Math.min(100, position)))
+  }
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>): void => {
+    if (!isSliderDragging) return
+
+    const container = e.currentTarget
+    const rect = container.getBoundingClientRect()
+    const clientX = e.touches[0]?.clientX
+    if (clientX === undefined) return
+
+    const position = ((clientX - rect.left) / rect.width) * 100
+    setSliderPosition(Math.max(0, Math.min(100, position)))
+  }
+
+  const showComparison = !batchMode && Boolean(videoUrl && upscaledVideoUrl)
+
   return (
     <div
       className="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden"
@@ -144,12 +211,81 @@ export function MainContent({
       )}
 
       {!batchMode && videoUrl && (
-        <div className="relative z-10 flex h-full w-full items-center justify-center p-8">
-          <video
-            src={videoUrl}
-            controls
-            className="max-h-full max-w-full rounded-xl border shadow-sm"
-          />
+        <div className="relative z-10 flex h-full w-full flex-col items-center justify-center p-8">
+          {showComparison ? (
+            <div className="flex w-full flex-col items-center gap-2">
+              <p className="text-center text-sm font-medium">Drag slider to compare</p>
+              <div
+                className="relative flex h-full w-full max-h-[70vh] items-center justify-center overflow-hidden rounded-xl border shadow-sm"
+                onMouseMove={handleSliderMove}
+                onMouseUp={handleSliderMouseUp}
+                onMouseLeave={handleSliderMouseUp}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleSliderMouseUp}
+              >
+                {/* Base video (normal) */}
+                <video
+                  key={`original-${videoUrl}`}
+                  src={videoUrl || undefined}
+                  controls
+                  className="absolute inset-0 h-full w-full object-contain"
+                />
+
+                {/* Overlay video (upscaled) - clipped based on slider */}
+                <div
+                  className="absolute inset-0 overflow-hidden"
+                  style={{
+                    width: `${sliderPosition}%`,
+                    transition: isSliderDragging ? 'none' : 'width 0.1s ease-out'
+                  }}
+                >
+                  <video
+                    key={`upscaled-${upscaledVideoUrl}`}
+                    src={upscaledVideoUrl || undefined}
+                    controls
+                    className="h-full w-screen object-contain"
+                  />
+                </div>
+
+                {/* Slider handle */}
+                <div
+                  className={`absolute inset-y-0 z-10 flex w-1 items-center justify-center bg-primary transition-colors ${
+                    isSliderDragging ? 'cursor-grabbing' : 'cursor-grab'
+                  }`}
+                  style={{
+                    left: `${sliderPosition}%`,
+                    transform: 'translateX(-50%)'
+                  }}
+                  onMouseDown={handleSliderMouseDown}
+                  onTouchStart={handleSliderMouseDown}
+                >
+                  <div className="relative flex h-12 w-10 items-center justify-center rounded-full bg-primary shadow-lg">
+                    <div className="flex gap-1">
+                      <div className="h-4 w-0.5 bg-background" />
+                      <div className="h-4 w-0.5 bg-background" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Labels */}
+                <div className="pointer-events-none absolute bottom-4 left-4 z-10">
+                  <p className="text-sm font-medium text-white drop-shadow-lg">Original</p>
+                </div>
+                <div className="pointer-events-none absolute bottom-4 right-4 z-10">
+                  <p className="text-sm font-medium text-white drop-shadow-lg">Upscaled</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex min-w-0 flex-col gap-2">
+              <video
+                key={`original-${videoUrl}`}
+                src={videoUrl || undefined}
+                controls
+                className="max-h-[70vh] max-w-full rounded-xl border shadow-sm"
+              />
+            </div>
+          )}
         </div>
       )}
 

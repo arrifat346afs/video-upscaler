@@ -1,6 +1,13 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import type { ProgressData } from '../types'
 import type { SystemInfo } from '../../../../common/types/types'
+
+const VIDEO_OUTPUT_EXTENSIONS = ['mp4', 'webm', 'mkv', 'avi', 'mov']
+
+function isVideoOutputPath(path: string): boolean {
+  const extension = path.split('.').pop()?.toLowerCase()
+  return extension ? VIDEO_OUTPUT_EXTENSIONS.includes(extension) : false
+}
 
 type UseUpscaleReturn = {
   activeTab: string
@@ -24,6 +31,7 @@ type UseUpscaleReturn = {
   folderPath: string | null
   folderVideoCount: number
   outputPath: string | null
+  upscaledVideoPath: string | null
   isProcessing: boolean
   progress: ProgressData | null
   logs: string[]
@@ -41,9 +49,7 @@ export function useUpscale(): UseUpscaleReturn {
   const [activeTab, setActiveTab] = useState('upscale')
   const [batchMode, setBatchMode] = useState(false)
   const [doubleUpscale, setDoubleUpscale] = useState(false)
-  const [model, setModel] = useState(
-    () => localStorage.getItem('selectedModel') || ''
-  )
+  const [model, setModel] = useState(() => localStorage.getItem('selectedModel') || '')
   const [models, setModels] = useState<string[]>([])
   const [scale, setScale] = useState([4])
   const [ttaMode, setTtaMode] = useState(false)
@@ -56,10 +62,18 @@ export function useUpscale(): UseUpscaleReturn {
   const [folderPath, setFolderPath] = useState<string | null>(null)
   const [folderVideoCount, setFolderVideoCount] = useState(0)
   const [outputPath, setOutputPath] = useState<string | null>(null)
+  const [upscaledVideoPath, setUpscaledVideoPath] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState<ProgressData | null>(null)
   const [logs, setLogs] = useState<string[]>([])
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
+  const batchModeRef = useRef(batchMode)
+
+  const handleBatchModeChange = useCallback((batch: boolean) => {
+    batchModeRef.current = batch
+    setBatchMode(batch)
+    setUpscaledVideoPath(null)
+  }, [])
 
   useEffect(() => {
     localStorage.setItem('outputFormat', outputFormat)
@@ -95,7 +109,10 @@ export function useUpscale(): UseUpscaleReturn {
     )
 
     cleanupFns.push(
-      window.api.onUpscaleDone(() => {
+      window.api.onUpscaleDone((data) => {
+        if (!batchModeRef.current && isVideoOutputPath(data.outputPath)) {
+          setUpscaledVideoPath(data.outputPath)
+        }
         setIsProcessing(false)
       })
     )
@@ -120,6 +137,7 @@ export function useUpscale(): UseUpscaleReturn {
 
   const handleVideoSelected = useCallback((path: string) => {
     setVideoPath(path)
+    setUpscaledVideoPath(null)
     setLogs([])
     setProgress(null)
   }, [])
@@ -135,6 +153,7 @@ export function useUpscale(): UseUpscaleReturn {
     const path = await window.api.selectFolder()
     if (path) {
       setFolderPath(path)
+      setUpscaledVideoPath(null)
       setLogs([])
       setProgress(null)
       try {
@@ -162,6 +181,7 @@ export function useUpscale(): UseUpscaleReturn {
     if (!model) return
 
     setIsProcessing(true)
+    setUpscaledVideoPath(null)
     setLogs([])
     setProgress(null)
 
@@ -200,7 +220,7 @@ export function useUpscale(): UseUpscaleReturn {
     activeTab,
     setActiveTab,
     batchMode,
-    setBatchMode,
+    setBatchMode: handleBatchModeChange,
     doubleUpscale,
     setDoubleUpscale,
     model,
@@ -218,6 +238,7 @@ export function useUpscale(): UseUpscaleReturn {
     folderPath,
     folderVideoCount,
     outputPath,
+    upscaledVideoPath,
     isProcessing,
     progress,
     logs,

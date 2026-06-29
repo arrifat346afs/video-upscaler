@@ -360,6 +360,9 @@ export async function upscaleSingleVideo(options: UpscaleVideoOptions): Promise<
     const dir = path.dirname(videoPath)
     const suffix = isAudio ? '_audio' : '_upscaled'
     outputPath = path.join(dir, `${videoName}${suffix}${cfg.ext}`)
+  } else if (fs.existsSync(outputPath) && fs.statSync(outputPath).isDirectory()) {
+    const suffix = isAudio ? '_audio' : '_upscaled'
+    outputPath = path.join(outputPath, `${videoName}${suffix}${cfg.ext}`)
   } else if (!outputPath.endsWith(cfg.ext)) {
     outputPath = `${outputPath}${cfg.ext}`
   }
