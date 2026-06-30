@@ -155,7 +155,8 @@ function registerIpcHandlers(): void {
   })
 
   ipcMain.handle(ELECTRON_COMMANDS.UPSCAYL_VIDEO, async (event, payload) => {
-    const { videoPath, outputPath, model, scale, ttaMode, tileSize, outputFormat } = payload
+    const { videoPath, outputPath, model, scale, ttaMode, tileSize, outputFormat, batchSize } =
+      payload
     const win = BrowserWindow.fromWebContents(event.sender)
 
     const options: UpscaleVideoOptions = {
@@ -165,6 +166,7 @@ function registerIpcHandlers(): void {
       scale: String(scale),
       ttaMode,
       tileSize,
+      batchSize,
       outputFormat,
       onProgress: (data) => {
         win?.webContents.send(ELECTRON_COMMANDS.UPSCAYL_VIDEO_PROGRESS, data)
@@ -184,7 +186,8 @@ function registerIpcHandlers(): void {
   })
 
   ipcMain.handle(ELECTRON_COMMANDS.FOLDER_UPSCAYL, async (event, payload) => {
-    const { folderPath, outputPath, model, scale, ttaMode, tileSize, outputFormat } = payload
+    const { folderPath, outputPath, model, scale, ttaMode, tileSize, outputFormat, batchSize } =
+      payload
     const win = BrowserWindow.fromWebContents(event.sender)
 
     const options: UpscaleFolderOptions = {
@@ -194,6 +197,7 @@ function registerIpcHandlers(): void {
       scale: String(scale),
       ttaMode,
       tileSize,
+      batchSize,
       outputFormat,
       onProgress: (data) => {
         win?.webContents.send(ELECTRON_COMMANDS.UPSCAYL_VIDEO_PROGRESS, data)

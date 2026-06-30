@@ -14,6 +14,7 @@ interface Api {
     scale: string
     ttaMode?: boolean
     tileSize?: number
+    batchSize?: number
     outputFormat?: string
   }) => Promise<void>
   upscaleFolder: (payload: {
@@ -23,6 +24,7 @@ interface Api {
     scale: string
     ttaMode?: boolean
     tileSize?: number
+    batchSize?: number
     outputFormat?: string
   }) => Promise<void>
   stopUpscaling: () => void

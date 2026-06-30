@@ -45,6 +45,8 @@ type SidebarPanelProps = {
   onTtaModeChange: (tta: boolean) => void
   tileSize: string
   onTileSizeChange: (tileSize: string) => void
+  batchSize: number
+  onBatchSizeChange: (size: number) => void
   outputFormat: string
   onOutputFormatChange: (format: string) => void
   videoPath: string | null
@@ -75,6 +77,8 @@ export const SidebarPanel = ({
   // onTtaModeChange,
   // tileSize,
   // onTileSizeChange,
+  batchSize,
+  onBatchSizeChange,
   outputFormat,
   onOutputFormatChange,
   videoPath,
@@ -310,6 +314,29 @@ export const SidebarPanel = ({
                     ? 'Upscaled video will use this container and codec.'
                     : 'Audio will be extracted from the source video.'}
                 </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+                Memory
+              </h3>
+              <div className="space-y-2">
+                <Label className="text-xs">Frames per batch</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={batchSize}
+                    onChange={(e) => onBatchSizeChange(Math.max(1, parseInt(e.target.value) || 1))}
+                    disabled={isProcessing}
+                    className="w-20 h-10 rounded-2xl border border-input/60 bg-background/90 px-3 text-sm text-center transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Lower = less memory, higher = faster
+                  </p>
+                </div>
               </div>
             </div>
 

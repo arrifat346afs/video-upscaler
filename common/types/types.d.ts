@@ -7,6 +7,7 @@ export type VideoUpscaylPayload = {
   scale: string
   ttaMode?: boolean
   tileSize?: number
+  batchSize?: number
   outputFormat?: string
 }
 

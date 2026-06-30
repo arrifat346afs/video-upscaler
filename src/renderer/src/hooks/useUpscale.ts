@@ -25,6 +25,8 @@ type UseUpscaleReturn = {
   setTtaMode: (tta: boolean) => void
   tileSize: string
   setTileSize: (tileSize: string) => void
+  batchSize: number
+  setBatchSize: (size: number) => void
   outputFormat: string
   setOutputFormat: (format: string) => void
   videoPath: string | null
@@ -54,6 +56,7 @@ export function useUpscale(): UseUpscaleReturn {
   const [scale, setScale] = useState([4])
   const [ttaMode, setTtaMode] = useState(false)
   const [tileSize, setTileSize] = useState('256')
+  const [batchSize, setBatchSize] = useState(10)
 
   const [outputFormat, setOutputFormat] = useState(
     () => localStorage.getItem('outputFormat') || 'mp4'
@@ -193,6 +196,7 @@ export function useUpscale(): UseUpscaleReturn {
         scale: String(scale[0]),
         ttaMode,
         tileSize: parseInt(tileSize) || 0,
+        batchSize,
         outputFormat
       })
       return
@@ -205,9 +209,21 @@ export function useUpscale(): UseUpscaleReturn {
       scale: String(scale[0]),
       ttaMode,
       tileSize: parseInt(tileSize) || 0,
+      batchSize,
       outputFormat
     })
-  }, [batchMode, folderPath, videoPath, model, scale, outputPath, ttaMode, tileSize, outputFormat])
+  }, [
+    batchMode,
+    folderPath,
+    videoPath,
+    model,
+    scale,
+    outputPath,
+    ttaMode,
+    tileSize,
+    batchSize,
+    outputFormat
+  ])
 
   const handleCancel = useCallback(() => {
     window.api.stopUpscaling()
@@ -232,6 +248,8 @@ export function useUpscale(): UseUpscaleReturn {
     setTtaMode,
     tileSize,
     setTileSize,
+    batchSize,
+    setBatchSize,
     outputFormat,
     setOutputFormat,
     videoPath,

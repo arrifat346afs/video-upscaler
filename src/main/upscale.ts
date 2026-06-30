@@ -38,6 +38,7 @@ export type UpscaleVideoOptions = {
   scale: string
   ttaMode?: boolean
   tileSize?: number
+  batchSize?: number
   outputFormat?: string
   onProgress: (data: ProgressData) => void
   sendLog: (message: string) => void
@@ -217,15 +218,13 @@ function extractFrames(
   })
 }
 
-function upscaleFramesBatch(
-  frameDir: string,
-  upscaledDir: string,
+function runUpscaylBin(
+  inputDir: string,
+  outputDir: string,
   model: string,
   scale: string,
-  totalFrames: number,
   ttaMode: boolean,
-  tileSize: number,
-  onProgress: (current: number) => void
+  tileSize: number
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const binaryPath = getBinaryPath()
@@ -233,18 +232,15 @@ function upscaleFramesBatch(
 
     const args = [
       '-i',
-      frameDir,
+      inputDir,
       '-o',
-      upscaledDir,
+      outputDir,
       '-m',
       modelPath,
       '-n',
       model,
       '-s',
       scale,
-      // Lower concurrency to avoid excessive RAM usage.
-      // The previous 2:4:2 setting processed 4 frames simultaneously,
-      // which could consume ~14 GB on high-res/4x upscales.
       '-j',
       '1:1:1',
       '-f',
@@ -253,41 +249,65 @@ function upscaleFramesBatch(
       '5'
     ]
 
-    if (ttaMode) {
-      args.push('-x')
-    }
-
-    if (tileSize > 0) {
-      args.push('-t', String(tileSize))
-    }
+    if (ttaMode) args.push('-x')
+    if (tileSize > 0) args.push('-t', String(tileSize))
 
     const proc = spawn(binaryPath, args)
-
     trackProcess(proc)
 
-    let completedFrames = 0
-    proc.stderr?.on('data', (data: Buffer) => {
-      const output = data.toString()
-      const matches = output.match(/100\.00%/g)
-      if (matches) {
-        completedFrames += matches.length
-        onProgress(Math.min(completedFrames, totalFrames))
-      }
-    })
-
     proc.on('close', (code) => {
-      if (code === 0) {
-        onProgress(totalFrames)
-        resolve()
-      } else if (code === null) {
-        reject(new Error('Process was terminated'))
-      } else {
-        reject(new Error(`upscayl-bin exited with code ${code}`))
-      }
+      if (code === 0) resolve()
+      else if (code === null) reject(new Error('Process was terminated'))
+      else reject(new Error(`upscayl-bin exited with code ${code}`))
     })
 
     proc.on('error', reject)
   })
+}
+
+async function upscaleFramesBatch(
+  frameDir: string,
+  upscaledDir: string,
+  model: string,
+  scale: string,
+  totalFrames: number,
+  ttaMode: boolean,
+  tileSize: number,
+  batchSize: number,
+  onProgress: (current: number) => void
+): Promise<void> {
+  const frameFiles = fs
+    .readdirSync(frameDir)
+    .filter((f) => f.endsWith('.jpg'))
+    .sort()
+
+  let completedFrames = 0
+
+  for (let i = 0; i < frameFiles.length; i += batchSize) {
+    const batch = frameFiles.slice(i, i + batchSize)
+    const batchInputDir = path.join(frameDir, `_batch_in_${i}`)
+    const batchOutputDir = path.join(frameDir, `_batch_out_${i}`)
+
+    fs.mkdirSync(batchInputDir, { recursive: true })
+    fs.mkdirSync(batchOutputDir, { recursive: true })
+
+    for (const frame of batch) {
+      fs.renameSync(path.join(frameDir, frame), path.join(batchInputDir, frame))
+    }
+
+    await runUpscaylBin(batchInputDir, batchOutputDir, model, scale, ttaMode, tileSize)
+
+    const outputFiles = fs.readdirSync(batchOutputDir)
+    for (const f of outputFiles) {
+      fs.renameSync(path.join(batchOutputDir, f), path.join(upscaledDir, f))
+    }
+
+    fs.rmSync(batchInputDir, { recursive: true, force: true })
+    fs.rmSync(batchOutputDir, { recursive: true, force: true })
+
+    completedFrames += batch.length
+    onProgress(Math.min(completedFrames, totalFrames))
+  }
 }
 
 function reassembleVideo(
@@ -348,7 +368,7 @@ function extractAudio(videoPath: string, outputPath: string, format: string): Pr
 const AUDIO_FORMATS = new Set(['mp3', 'wav', 'aac', 'flac'])
 
 export async function upscaleSingleVideo(options: UpscaleVideoOptions): Promise<string> {
-  const { videoPath, model, scale, ttaMode, tileSize, onProgress, sendLog } = options
+  const { videoPath, model, scale, ttaMode, tileSize, batchSize, onProgress, sendLog } = options
   const outputFormat = options.outputFormat ?? 'mp4'
   const cfg = FORMAT_CONFIG[outputFormat] ?? FORMAT_CONFIG['mp4']
   const isAudio = AUDIO_FORMATS.has(outputFormat)
@@ -434,6 +454,9 @@ export async function upscaleSingleVideo(options: UpscaleVideoOptions): Promise<
     const actualFrameCount = frameFiles.length
     sendLog(`Extracted ${actualFrameCount} frames. Starting upscale...`)
 
+    const effectiveBatchSize = batchSize ?? 10
+    sendLog(`Processing in batches of ${effectiveBatchSize} frames to limit memory usage`)
+
     onProgress({
       current: 0,
       total: actualFrameCount,
@@ -448,6 +471,7 @@ export async function upscaleSingleVideo(options: UpscaleVideoOptions): Promise<
       actualFrameCount,
       ttaMode ?? false,
       tileSize ?? 0,
+      effectiveBatchSize,
       (current) => {
         onProgress({
           current,

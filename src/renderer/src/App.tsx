@@ -20,6 +20,8 @@ function App(): React.JSX.Element {
     setTtaMode,
     tileSize,
     setTileSize,
+    batchSize,
+    setBatchSize,
     outputFormat,
     setOutputFormat,
     videoPath,
@@ -59,6 +61,8 @@ function App(): React.JSX.Element {
           onTtaModeChange={setTtaMode}
           tileSize={tileSize}
           onTileSizeChange={setTileSize}
+          batchSize={batchSize}
+          onBatchSizeChange={setBatchSize}
           outputFormat={outputFormat}
           onOutputFormatChange={setOutputFormat}
           videoPath={videoPath}

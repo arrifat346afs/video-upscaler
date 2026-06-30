@@ -22,6 +22,7 @@ const api = {
     scale: string
     ttaMode?: boolean
     tileSize?: number
+    batchSize?: number
     outputFormat?: string
   }) => ipcRenderer.invoke(ELECTRON_COMMANDS.UPSCAYL_VIDEO, payload),
 
@@ -32,6 +33,7 @@ const api = {
     scale: string
     ttaMode?: boolean
     tileSize?: number
+    batchSize?: number
     outputFormat?: string
   }) => ipcRenderer.invoke(ELECTRON_COMMANDS.FOLDER_UPSCAYL, payload),
 
