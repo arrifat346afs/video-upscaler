@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>com.tuxscale.app</id>
+  <id>io.github.arrifat346afs.TuxScale</id>
   <name>TuxScale</name>
   <summary>Video upscaling application powered by AI</summary>
 
-  <url type="homepage">https://github.com/rifat/tuxscale</url>
-  <url type="bugtracker">https://github.com/rifat/tuxscale/issues</url>
+  <url type="homepage">https://github.com/arrifat346afs/TuxScale</url>
+  <url type="bugtracker">https://github.com/arrifat346afs/TuxScale/issues</url>
 
   <metadata_license>FSFAP</metadata_license>
   <project_license>AGPL-3.0</project_license>
@@ -16,11 +16,11 @@
 
   <content_rating type="oars-1.1" />
 
-  <launchable type="desktop-id">com.tuxscale.app.desktop</launchable>
+  <launchable type="desktop-id">io.github.arrifat346afs.TuxScale.desktop</launchable>
 
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/rifat/tuxscale/main/screenshot.png</image>
+      <image>https://raw.githubusercontent.com/arrifat346afs/TuxScale/main/screenshot.png</image>
     </screenshot>
   </screenshots>
 

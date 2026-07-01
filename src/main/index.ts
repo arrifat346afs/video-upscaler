@@ -367,7 +367,7 @@ function registerIpcHandlers(): void {
 }
 
 app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.tuxscale.app')
+  electronApp.setAppUserModelId('io.github.arrifat346afs.TuxScale')
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

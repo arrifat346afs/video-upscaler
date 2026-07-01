@@ -1,4 +1,4 @@
-appId: com.tuxscale.app
+appId: io.github.arrifat346afs.TuxScale
 productName: TuxScale
 directories:
   buildResources: build

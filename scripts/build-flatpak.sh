@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-APP_ID="com.tuxscale.app"
+APP_ID="io.github.arrifat346afs.TuxScale"
 MANIFEST="flatpak/${APP_ID}.yml"
 BUILD_DIR="flatpak/build-dir"
 
