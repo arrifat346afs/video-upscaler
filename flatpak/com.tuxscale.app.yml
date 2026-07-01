@@ -10,11 +10,13 @@ separate-locales: false
 finish-args:
   - --device=dri
   - --share=ipc
-  - --filesystem=home
+  - --filesystem=host
   - --share=network
   - --socket=wayland
   - --socket=fallback-x11
   - --socket=pulseaudio
+  - --socket=session-bus
+  - --talk-name=org.freedesktop.DBus
   - --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
 
 modules:
@@ -49,7 +51,7 @@ modules:
       - type: script
         dest-filename: tuxscale-run
         commands:
-          - zypak-wrapper /app/tuxscale/tuxscale --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations
+          - zypak-wrapper /app/tuxscale/tuxscale --ozone-platform-hint=x11 --in-process-gpu
     build-commands:
       - install -d /app/tuxscale
       - unzip tuxscale-linux.zip -d /app/tuxscale
